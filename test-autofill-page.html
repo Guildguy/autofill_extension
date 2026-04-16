@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AutoFill Extension - Pagina de Teste</title>
+    <style>
+      :root {
+        --bg: #f4f7f2;
+        --panel: #ffffff;
+        --ink: #1f2a37;
+        --muted: #5f6b76;
+        --accent: #1d6f42;
+        --accent-soft: #e8f3eb;
+        --line: #d5dee4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 8%, #ffffff 0%, rgba(255, 255, 255, 0) 30%),
+          linear-gradient(160deg, #f7fbf8 0%, #eef5f1 46%, #e9f0ec 100%);
+      }
+
+      .shell {
+        max-width: 980px;
+        margin: 28px auto;
+        padding: 0 16px 32px;
+      }
+
+      .hero {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 24px rgba(31, 42, 55, 0.06);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.4rem, 2.5vw, 2rem);
+      }
+
+      .lead {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .tips {
+        margin: 12px 0 0;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--accent-soft);
+        border: 1px dashed #93c5aa;
+        color: #144226;
+        font-size: 0.95rem;
+      }
+
+      .card {
+        margin-top: 16px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .grid-2 {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: #44515d;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 0.95rem;
+        color: var(--ink);
+        background: #fff;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid #bfdac7;
+        border-color: #5ea379;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.94rem;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        color: #fff;
+        background: var(--accent);
+      }
+
+      .btn-secondary {
+        color: #1f2a37;
+        background: #e8edf2;
+      }
+
+      .placeholder-note {
+        margin: 0;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+
+      #dynamic-zone {
+        margin-top: 10px;
+      }
+
+      @media (max-width: 760px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <h1>Pagina de teste da AutoFill Extension</h1>
+        <p class="lead">
+          Esta pagina simula um formulario real para validar o preenchimento automatico da extensao.
+          Todos os campos comecam vazios para facilitar o teste.
+        </p>
+        <p class="tips">
+          Dica: salve os dados no popup da extensao e clique em "Preencher agora". Se estiver abrindo este arquivo
+          via file://, ative "Allow access to file URLs" na extensao.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Cadastro principal</h2>
+        <form id="test-form" autocomplete="on">
+          <div class="grid-2">
+            <label for="customer_first_name">
+              Primeiro nome
+              <input id="customer_first_name" name="primeiro_nome" autocomplete="given-name" />
+            </label>
+            <label for="customer_last_name">
+              Sobrenome
+              <input id="customer_last_name" name="sobrenome" autocomplete="family-name" />
+            </label>
+          </div>
+
+          <label for="full_name_input">
+            Nome completo
+            <input
+              id="full_name_input"
+              name="nome_completo"
+              placeholder="Nome completo"
+              autocomplete="name"
+            />
+          </label>
+
+          <div class="grid-3">
+            <label for="cpf_field">
+              CPF com mascara
+              <input id="cpf_field" name="cpf" maxlength="14" placeholder="000.000.000-00" />
+            </label>
+            <label for="cpf_raw">
+              CPF sem mascara (digits)
+              <input id="cpf_raw" name="cpf_raw" maxlength="11" pattern="\d+" />
+            </label>
+            <label for="rg_field">
+              RG
+              <input id="rg_field" name="registro_geral" placeholder="12.345.678-9" />
+            </label>
+          </div>
+
+          <div class="grid-2">
+            <label for="email_contact">
+              E-mail
+              <input id="email_contact" type="email" name="email" autocomplete="email" />
+            </label>
+            <label for="phone_masked">
+              Telefone (mascara)
+              <input id="phone_masked" type="tel" name="telefone" autocomplete="tel" />
+            </label>
+          </div>
+
+          <div class="grid-2">
+            <label for="phone_raw">
+              Telefone sem mascara (digits)
+              <input id="phone_raw" type="text" name="phone_raw" maxlength="11" pattern="\d+" />
+            </label>
+            <label for="birth_iso">
+              Data de nascimento (input date)
+              <input id="birth_iso" type="date" name="birth_date" autocomplete="bday" />
+            </label>
+          </div>
+
+          <div class="grid-3">
+            <label for="birth_day">
+              Dia nascimento
+              <input id="birth_day" name="dia_nascimento" autocomplete="bday-day" maxlength="2" pattern="\d+" />
+            </label>
+            <label for="birth_month">
+              Mes nascimento
+              <input id="birth_month" name="mes_nascimento" autocomplete="bday-month" maxlength="2" pattern="\d+" />
+            </label>
+            <label for="birth_year">
+              Ano nascimento
+              <input id="birth_year" name="ano_nascimento" autocomplete="bday-year" maxlength="4" pattern="\d+" />
+            </label>
+          </div>
+
+          <div class="grid-2">
+            <label for="zipcode">
+              CEP
+              <input id="zipcode" name="cep" autocomplete="postal-code" maxlength="9" />
+            </label>
+            <label for="street_name">
+              Rua / Logradouro
+              <input id="street_name" name="street" autocomplete="address-line1" />
+            </label>
+          </div>
+
+          <div class="grid-3">
+            <label for="address_number">
+              Numero
+              <input id="address_number" name="numero" autocomplete="address-line2" />
+            </label>
+            <label for="address_extra">
+              Complemento
+              <input id="address_extra" name="complemento" />
+            </label>
+            <label for="district_name">
+              Bairro
+              <input id="district_name" name="bairro" />
+            </label>
+          </div>
+
+          <div class="grid-2">
+            <label for="city_name">
+              Cidade
+              <input id="city_name" name="cidade" autocomplete="address-level2" />
+            </label>
+            <label for="state_code_input">
+              Estado (UF em input)
+              <input id="state_code_input" name="uf" autocomplete="address-level1" maxlength="2" />
+            </label>
+          </div>
+
+          <label for="state_select">
+            Estado (select)
+            <select id="state_select" name="estado_select" autocomplete="address-level1">
+              <option value="">Selecione...</option>
+              <option value="AC">Acre</option>
+              <option value="AL">Alagoas</option>
+              <option value="AP">Amapa</option>
+              <option value="AM">Amazonas</option>
+              <option value="BA">Bahia</option>
+              <option value="CE">Ceara</option>
+              <option value="DF">Distrito Federal</option>
+              <option value="ES">Espirito Santo</option>
+              <option value="GO">Goias</option>
+              <option value="MA">Maranhao</option>
+              <option value="MG">Minas Gerais</option>
+              <option value="MS">Mato Grosso do Sul</option>
+              <option value="MT">Mato Grosso</option>
+              <option value="PA">Para</option>
+              <option value="PB">Paraiba</option>
+              <option value="PE">Pernambuco</option>
+              <option value="PI">Piaui</option>
+              <option value="PR">Parana</option>
+              <option value="RJ">Rio de Janeiro</option>
+              <option value="RN">Rio Grande do Norte</option>
+              <option value="RO">Rondonia</option>
+              <option value="RR">Roraima</option>
+              <option value="RS">Rio Grande do Sul</option>
+              <option value="SC">Santa Catarina</option>
+              <option value="SE">Sergipe</option>
+              <option value="SP">Sao Paulo</option>
+              <option value="TO">Tocantins</option>
+            </select>
+          </label>
+
+          <label for="notes">
+            Observacoes (textarea)
+            <textarea id="notes" name="observacoes" rows="3" placeholder="Campo extra para validar que nao e alterado"></textarea>
+          </label>
+
+          <p class="placeholder-note">
+            Campo protegido para nao preencher (senha/captcha) intencionalmente nao foi incluido no formulario.
+          </p>
+
+          <div class="actions">
+            <button class="btn-primary" type="button" id="add-dynamic-fields">Adicionar campos dinamicos</button>
+            <button class="btn-secondary" type="reset">Limpar formulario</button>
+          </div>
+
+          <div id="dynamic-zone" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const addBtn = document.getElementById("add-dynamic-fields");
+      const zone = document.getElementById("dynamic-zone");
+
+      addBtn.addEventListener("click", () => {
+        if (document.getElementById("dynamic-email")) {
+          return;
+        }
+
+        // Inserimos campos apos o carregamento para testar MutationObserver do content script.
+        zone.innerHTML = `
+          <div class="card" style="margin-top: 10px;">
+            <h2 style="margin-top: 0;">Campos dinamicos</h2>
+            <div class="grid-2">
+              <label for="dynamic-email">
+                Email alternativo
+                <input id="dynamic-email" name="email_alt" type="email" placeholder="email alternativo" />
+              </label>
+              <label for="dynamic-city">
+                Cidade de entrega
+                <input id="dynamic-city" name="cidade_entrega" placeholder="cidade" />
+              </label>
+            </div>
+          </div>
+        `;
+      });
+    </script>
+  </body>
+</html>
