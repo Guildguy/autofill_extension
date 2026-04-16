@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>AutoFill</title>
+		<style>
+			:root {
+				--bg: #f5f4ef;
+				--card: #ffffff;
+				--ink: #1f2a37;
+				--muted: #5a6672;
+				--accent: #0f766e;
+				--accent-strong: #115e59;
+				--border: #d9e0e8;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				width: 360px;
+				font-family: "Segoe UI", "Noto Sans", sans-serif;
+				background: radial-gradient(circle at top left, #ffffff 0%, var(--bg) 60%);
+				color: var(--ink);
+			}
+
+			.wrap {
+				padding: 14px;
+			}
+
+			.title {
+				margin: 0 0 10px;
+				font-size: 18px;
+			}
+
+			.subtitle {
+				margin: 0 0 14px;
+				color: var(--muted);
+				font-size: 12px;
+			}
+
+			form {
+				display: grid;
+				gap: 10px;
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+			}
+
+			label {
+				display: grid;
+				gap: 4px;
+				font-size: 12px;
+				color: var(--muted);
+			}
+
+			input {
+				width: 100%;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				padding: 8px;
+				font-size: 13px;
+				color: var(--ink);
+				background: #fff;
+			}
+
+			input:focus {
+				outline: 2px solid #99f6e4;
+				border-color: var(--accent);
+			}
+
+			.actions {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+				margin-top: 4px;
+			}
+
+			button {
+				border: 0;
+				border-radius: 10px;
+				padding: 10px;
+				cursor: pointer;
+				font-weight: 600;
+			}
+
+			.primary {
+				background: var(--accent);
+				color: #fff;
+			}
+
+			.primary:hover {
+				background: var(--accent-strong);
+			}
+
+			.secondary {
+				background: #e9eef4;
+				color: #1f2a37;
+			}
+
+			#status {
+				min-height: 18px;
+				font-size: 12px;
+				margin-top: 8px;
+				color: var(--muted);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrap">
+			<h1 class="title">AutoFill</h1>
+			<p class="subtitle">Dados salvos localmente no navegador.</p>
+
+			<form id="profile-form">
+				<div class="grid">
+					<label>
+						Primeiro nome
+						<input id="firstName" autocomplete="given-name" />
+					</label>
+					<label>
+						Sobrenome
+						<input id="lastName" autocomplete="family-name" />
+					</label>
+				</div>
+
+				<label>
+					Nome completo
+					<input id="fullName" autocomplete="name" />
+				</label>
+
+				<div class="grid">
+					<label>
+						CPF
+						<input id="cpf" placeholder="000.000.000-00" />
+					</label>
+					<label>
+						RG
+						<input id="rg" placeholder="12.345.678-9" />
+					</label>
+				</div>
+
+				<div class="grid">
+					<label>
+						Email
+						<input id="email" type="email" autocomplete="email" />
+					</label>
+					<label>
+						Telefone
+						<input id="phone" placeholder="(11) 91234-5678" autocomplete="tel" />
+					</label>
+				</div>
+
+				<div class="grid">
+					<label>
+						Data de nascimento
+						<input id="birthDate" type="date" />
+					</label>
+					<label>
+						CEP
+						<input id="cep" placeholder="01310-100" autocomplete="postal-code" />
+					</label>
+				</div>
+
+				<label>
+					Rua
+					<input id="street" autocomplete="address-line1" />
+				</label>
+
+				<div class="grid">
+					<label>
+						Numero
+						<input id="number" autocomplete="address-line2" />
+					</label>
+					<label>
+						Complemento
+						<input id="complement" />
+					</label>
+				</div>
+
+				<div class="grid">
+					<label>
+						Bairro
+						<input id="district" />
+					</label>
+					<label>
+						Cidade
+						<input id="city" autocomplete="address-level2" />
+					</label>
+				</div>
+
+				<div class="grid">
+					<label>
+						Estado (UF)
+						<input id="stateCode" maxlength="2" placeholder="SP" autocomplete="address-level1" />
+					</label>
+					<label>
+						Estado (nome)
+						<input id="stateName" placeholder="Sao Paulo" />
+					</label>
+				</div>
+
+				<div class="actions">
+					<button class="primary" type="submit">Salvar dados</button>
+					<button class="secondary" id="fill-now" type="button">Preencher agora</button>
+				</div>
+				<div id="status"></div>
+			</form>
+		</div>
+
+		<script src="popup.js"></script>
+	</body>
+</html>
