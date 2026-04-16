@@ -7,19 +7,25 @@ const DEBUG_EVENT_NAME = AutofillShared.DEBUG_EVENT_NAME;
 const extApi = typeof browser !== "undefined" ? browser : chrome;
 const FORM_FIELD_SELECTOR =
 	"input, select, textarea, spl-autocomplete, spl-select, spl-input, [contenteditable='true'], [role='textbox'], [role='combobox'], [data-test='location-autocomplete']";
+const CONSENT_PROMPT_HOST_ID = "autofill-consent-host";
+
+let autofillConsentState = "unknown";
 
 let debounceHandle = null;
 
 init();
 
 function init() {
-	runAutofill();
+	maybePromptAutofillConsent();
 	observeDynamicForms();
 
 	extApi.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		if (message?.type !== AutofillShared.AUTOFILL_NOW_MESSAGE) {
 			return undefined;
 		}
+
+		autofillConsentState = "accepted";
+		removeConsentPrompt();
 
 		runAutofill()
 			.then((result) => sendResponse({ ok: true, ...result }))
@@ -96,6 +102,120 @@ async function runAutofill() {
 	}
 
 	return { filled, alreadyFilled };
+}
+
+async function maybePromptAutofillConsent() {
+	if (autofillConsentState === "accepted") {
+		runAutofill();
+		return;
+	}
+
+	if (autofillConsentState === "declined") {
+		return;
+	}
+
+	const userData = await readUserData();
+	if (!userData) {
+		return;
+	}
+
+	const hasCandidateFields = collectCandidateFields().length > 0;
+	if (!hasCandidateFields) {
+		return;
+	}
+
+	showConsentPrompt();
+}
+
+function showConsentPrompt() {
+	if (document.getElementById(CONSENT_PROMPT_HOST_ID) || !document.body) {
+		return;
+	}
+
+	const host = document.createElement("div");
+	host.id = CONSENT_PROMPT_HOST_ID;
+	host.style.position = "fixed";
+	host.style.right = "16px";
+	host.style.bottom = "16px";
+	host.style.zIndex = "2147483647";
+	host.style.pointerEvents = "auto";
+
+	const shadow = host.attachShadow({ mode: "open" });
+	shadow.innerHTML = `
+		<style>
+			:host { all: initial; }
+			.card {
+				width: min(320px, calc(100vw - 24px));
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				background: #111827;
+				color: #f9fafb;
+				border-radius: 12px;
+				padding: 14px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+			}
+			.title {
+				font-size: 14px;
+				font-weight: 700;
+				margin: 0 0 6px 0;
+			}
+			.text {
+				font-size: 13px;
+				line-height: 1.45;
+				margin: 0 0 12px 0;
+				color: #e5e7eb;
+			}
+			.actions {
+				display: flex;
+				gap: 8px;
+				justify-content: flex-end;
+			}
+			button {
+				appearance: none;
+				border: 0;
+				border-radius: 8px;
+				padding: 8px 10px;
+				font-size: 12px;
+				font-weight: 600;
+				cursor: pointer;
+			}
+			.secondary {
+				background: #374151;
+				color: #f9fafb;
+			}
+			.primary {
+				background: #10b981;
+				color: #052e25;
+			}
+		</style>
+		<div class="card" role="dialog" aria-live="polite">
+			<p class="title">Autofill pronto para usar</p>
+			<p class="text">Encontramos campos de formulario nesta pagina. Quer preencher agora?</p>
+			<div class="actions">
+				<button class="secondary" id="autofill-later" type="button">Agora nao</button>
+				<button class="primary" id="autofill-yes" type="button">Preencher agora</button>
+			</div>
+		</div>
+	`;
+
+	const fillNowButton = shadow.getElementById("autofill-yes");
+	const laterButton = shadow.getElementById("autofill-later");
+
+	fillNowButton?.addEventListener("click", () => {
+		autofillConsentState = "accepted";
+		removeConsentPrompt();
+		runAutofill();
+	});
+
+	laterButton?.addEventListener("click", () => {
+		autofillConsentState = "declined";
+		removeConsentPrompt();
+	});
+
+	document.documentElement.appendChild(host);
+}
+
+function removeConsentPrompt() {
+	document.getElementById(CONSENT_PROMPT_HOST_ID)?.remove();
 }
 
 async function readUserData() {
@@ -394,7 +514,7 @@ function observeDynamicForms() {
 		}
 
 		debounceHandle = setTimeout(() => {
-			runAutofill();
+			maybePromptAutofillConsent();
 		}, RECHECK_DELAY_MS);
 	});
 
