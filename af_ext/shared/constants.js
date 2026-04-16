@@ -10,6 +10,8 @@ const AutofillShared = {
         "firstName",
         "lastName",
         "fullName",
+        "linkedin",
+        "github",
         "cpf",
         "rg",
         "email",
@@ -62,13 +64,23 @@ const AutofillShared = {
         },
         {
             key: "firstName",
-            keywords: ["primeiro nome", "first name", "firstname", "given name", "given-name"],
+            keywords: ["nome", "primeiro nome", "first name", "firstname", "given name", "given-name"],
             autocomplete: ["given-name"]
         },
         {
             key: "lastName",
             keywords: ["sobrenome", "last name", "lastname", "surname", "family name", "family-name"],
             autocomplete: ["family-name"]
+        },
+        {
+            key: "linkedin",
+            keywords: ["linkedin", "linked in", "linkedin profile", "perfil linkedin"],
+            autocomplete: ["url"]
+        },
+        {
+            key: "github",
+            keywords: ["github", "git hub", "github profile", "perfil github"],
+            autocomplete: ["url"]
         },
         {
             key: "email",
@@ -117,7 +129,17 @@ const AutofillShared = {
         },
         {
             key: "city",
-            keywords: ["cidade", "city", "municipio"],
+            keywords: [
+                "cidade",
+                "city",
+                "municipio",
+                "location",
+                "location city",
+                "city location",
+                "localizacao",
+                "localidade",
+                "town"
+            ],
             autocomplete: ["address-level2"]
         },
         {

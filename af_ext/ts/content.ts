@@ -115,7 +115,6 @@ async function storageGet(key) {
 function collectCandidateFields() {
 	return Array.from(document.querySelectorAll("input, select, textarea"))
 		.filter((field) => !field.disabled)
-		.filter((field) => !field.readOnly)
 		.filter((field) => {
 			if (!(field instanceof HTMLElement)) {
 				return false;
@@ -145,19 +144,29 @@ function setFieldValue(field, value) {
 		return setSelectValue(field, value);
 	}
 
+	const previousReadOnly = field.readOnly;
+	if (previousReadOnly && field instanceof HTMLInputElement) {
+		field.readOnly = false;
+	}
+
 	field.value = String(value);
 	triggerFieldEvents(field);
+
+	if (previousReadOnly && field instanceof HTMLInputElement) {
+		field.readOnly = true;
+	}
+
 	return true;
 }
 
 function setSelectValue(select, targetValue) {
-	const normalizedTarget = normalizeText(targetValue);
+	const normalizedTarget = AutofillTextCore.normalizeText(targetValue);
 	const options = Array.from(select.options);
 	const candidate =
-		options.find((option) => normalizeText(option.value) === normalizedTarget) ||
-		options.find((option) => normalizeText(option.textContent || "") === normalizedTarget) ||
-		options.find((option) => normalizeText(option.value).includes(normalizedTarget)) ||
-		options.find((option) => normalizeText(option.textContent || "").includes(normalizedTarget));
+		options.find((option) => AutofillTextCore.normalizeText(option.value) === normalizedTarget) ||
+		options.find((option) => AutofillTextCore.normalizeText(option.textContent || "") === normalizedTarget) ||
+		options.find((option) => AutofillTextCore.normalizeText(option.value).includes(normalizedTarget)) ||
+		options.find((option) => AutofillTextCore.normalizeText(option.textContent || "").includes(normalizedTarget));
 
 	if (!candidate) {
 		return false;

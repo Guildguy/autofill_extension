@@ -27,6 +27,46 @@ const AutofillAutofillCore = {
         }
         return "";
     },
+    resolveContextText(field) {
+        const collected = [];
+        let current = field.parentElement;
+        let depth = 0;
+        while (current && depth < 3 && collected.length < 2) {
+            const text = AutofillAutofillCore.extractContainerText(current);
+            const tokenCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+            if (tokenCount > 0 && tokenCount <= 12) {
+                collected.push(text);
+            }
+            current = current.parentElement;
+            depth += 1;
+        }
+        return collected.join(" ");
+    },
+    extractContainerText(container) {
+        const clone = container.cloneNode(true);
+        if (!(clone instanceof Element)) {
+            return "";
+        }
+        clone
+            .querySelectorAll("input, select, textarea, button, script, style, noscript, svg")
+            .forEach((node) => node.remove());
+        const rawText = String(clone.textContent || "").replace(/\s+/g, " ").trim();
+        if (!rawText) {
+            return "";
+        }
+        return rawText.slice(0, 120);
+    },
+    isStrongTokenMatch(text, keyword) {
+        const normalizedText = AutofillTextCore
+            .normalizeText(text)
+            .replace(/[\s:*.,;!?\-_/]+$/g, "")
+            .trim();
+        const normalizedKeyword = AutofillTextCore.normalizeText(keyword);
+        if (!normalizedText || !normalizedKeyword) {
+            return false;
+        }
+        return normalizedText === normalizedKeyword;
+    },
     buildSignals(field) {
         const autocomplete = AutofillTextCore.normalizeText(field.getAttribute("autocomplete") || "");
         const name = AutofillTextCore.normalizeText(field.getAttribute("name") || "");
@@ -38,6 +78,7 @@ const AutofillAutofillCore = {
             type = AutofillTextCore.normalizeText(field.type || "");
         }
         const labelText = AutofillTextCore.normalizeText(AutofillAutofillCore.resolveLabelText(field));
+        const contextText = AutofillTextCore.normalizeText(AutofillAutofillCore.resolveContextText(field));
         return {
             autocomplete,
             name,
@@ -45,6 +86,7 @@ const AutofillAutofillCore = {
             placeholder,
             aria,
             labelText,
+            contextText,
             type
         };
     },
@@ -75,9 +117,18 @@ const AutofillAutofillCore = {
             if (AutofillTextCore.containsToken(signals.labelText, keyword)) {
                 addPoints(30, "label", keyword);
             }
+            if (AutofillTextCore.containsToken(signals.contextText, keyword)) {
+                addPoints(20, "context", keyword);
+            }
             if (AutofillTextCore.containsToken(signals.placeholder, keyword) ||
                 AutofillTextCore.containsToken(signals.aria, keyword)) {
                 addPoints(20, "placeholder_or_aria", keyword);
+            }
+            if (AutofillAutofillCore.isStrongTokenMatch(signals.labelText, keyword)) {
+                addPoints(35, "strong_label", keyword);
+            }
+            if (AutofillAutofillCore.isStrongTokenMatch(signals.contextText, keyword)) {
+                addPoints(35, "strong_context", keyword);
             }
         }
         if (def.key === "cpf" && field instanceof HTMLInputElement) {
@@ -144,6 +195,10 @@ const AutofillAutofillCore = {
                 return userData.firstName || "";
             case "lastName":
                 return userData.lastName || "";
+            case "linkedin":
+                return userData.linkedin || "";
+            case "github":
+                return userData.github || "";
             case "email":
                 return userData.email || "";
             case "cpf":

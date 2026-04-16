@@ -29,8 +29,25 @@ fillNowButton.addEventListener("click", async () => {
   }
 
   try {
-    await sendMessageToTab(tab.id, { type: AutofillShared.AUTOFILL_NOW_MESSAGE });
-    setStatus("Preenchimento executado na aba atual.");
+    const response = await sendMessageToTab(tab.id, { type: AutofillShared.AUTOFILL_NOW_MESSAGE });
+
+    if (!response) {
+      setStatus("A extensao nao recebeu resposta da pagina atual.", true);
+      return;
+    }
+
+    if (response.ok === false) {
+      setStatus("Falha ao preencher na pagina atual.", true);
+      return;
+    }
+
+    const filledCount = Number(response.filled || 0);
+    if (filledCount > 0) {
+      setStatus(`Preenchimento executado: ${filledCount} campo(s) alterado(s).`);
+      return;
+    }
+
+    setStatus("Nenhum campo compativel foi encontrado nessa pagina.", true);
   } catch (_error) {
     setStatus("A pagina atual nao permite content scripts (paginas internas do navegador).", true);
   }

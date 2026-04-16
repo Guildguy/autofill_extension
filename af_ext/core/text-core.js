@@ -7,12 +7,18 @@ const AutofillTextCore = {
             .replace(/\s+/g, " ")
             .trim();
     },
+    normalizeForTokenMatch(value) {
+        return AutofillTextCore.normalizeText(value)
+            .replace(/[^a-z0-9]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    },
     containsToken(text, token) {
         if (!text || !token) {
             return false;
         }
-        const normalizedText = ` ${AutofillTextCore.normalizeText(text)} `;
-        const normalizedToken = ` ${AutofillTextCore.normalizeText(token)} `;
+        const normalizedText = ` ${AutofillTextCore.normalizeForTokenMatch(text)} `;
+        const normalizedToken = ` ${AutofillTextCore.normalizeForTokenMatch(token)} `;
         return normalizedText.includes(normalizedToken);
     },
     digitsOnly(value) {

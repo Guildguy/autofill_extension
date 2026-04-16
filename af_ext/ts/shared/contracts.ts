@@ -2,6 +2,8 @@ type AutofillFieldKey =
   | "fullName"
   | "firstName"
   | "lastName"
+  | "linkedin"
+  | "github"
   | "email"
   | "cpf"
   | "rg"
@@ -28,6 +30,8 @@ interface AutofillUserProfile {
   firstName: string;
   lastName: string;
   fullName: string;
+  linkedin: string;
+  github: string;
   cpf: string;
   cpfRaw: string;
   rg: string;
