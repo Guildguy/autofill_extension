@@ -48,6 +48,12 @@ fillNowButton.addEventListener("click", async () => {
       return;
     }
 
+    const alreadyFilledCount = Number(response.alreadyFilled || 0);
+    if (alreadyFilledCount > 0) {
+      setStatus(`Os campos compativeis ja estavam preenchidos (${alreadyFilledCount}).`);
+      return;
+    }
+
     setStatus("Nenhum campo compativel foi encontrado nessa pagina.", true);
   } catch (_error) {
     setStatus("A pagina atual nao permite content scripts (paginas internas do navegador).", true);

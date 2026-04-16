@@ -30,15 +30,20 @@ function init() {
 async function runAutofill() {
 	const userData = await readUserData();
 	if (!userData) {
-		return { filled: 0 };
+		return { filled: 0, alreadyFilled: 0 };
 	}
 
 	const targets = collectCandidateFields();
+	const prefilledTargets = collectPrefilledCandidateFields();
 	const evaluations = targets
+		.map((field) => ({ field, inference: AutofillAutofillCore.inferField(field) }))
+		.filter((item) => item.inference);
+	const prefilledEvaluations = prefilledTargets
 		.map((field) => ({ field, inference: AutofillAutofillCore.inferField(field) }))
 		.filter((item) => item.inference);
 
 	const inferences = evaluations.filter((item) => item.inference.score >= MIN_SCORE);
+	const alreadyFilled = prefilledEvaluations.filter((item) => item.inference.score >= MIN_SCORE).length;
 
 	if (inferences.length === 0) {
 		for (const item of evaluations) {
@@ -53,7 +58,7 @@ async function runAutofill() {
 				valuePreview: ""
 			});
 		}
-		return { filled: 0 };
+		return { filled: 0, alreadyFilled };
 	}
 
 	const hasSplitName =
@@ -88,7 +93,7 @@ async function runAutofill() {
 		});
 	}
 
-	return { filled };
+	return { filled, alreadyFilled };
 }
 
 async function readUserData() {
@@ -128,6 +133,29 @@ function collectCandidateFields() {
 			}
 
 			if (String(field.value || "").trim()) {
+				return false;
+			}
+
+			return !AutofillAutofillCore.looksProtected(field);
+		});
+}
+
+function collectPrefilledCandidateFields() {
+	return Array.from(document.querySelectorAll("input, select, textarea"))
+		.filter((field) => !field.disabled)
+		.filter((field) => {
+			if (!(field instanceof HTMLElement)) {
+				return false;
+			}
+
+			if (field instanceof HTMLInputElement) {
+				const type = (field.type || "").toLowerCase();
+				if (["hidden", "password", "file", "submit", "button", "reset"].includes(type)) {
+					return false;
+				}
+			}
+
+			if (!String(field.value || "").trim()) {
 				return false;
 			}
 

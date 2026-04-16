@@ -38,6 +38,11 @@
                 setStatus(`Preenchimento executado: ${filledCount} campo(s) alterado(s).`);
                 return;
             }
+            const alreadyFilledCount = Number(response.alreadyFilled || 0);
+            if (alreadyFilledCount > 0) {
+                setStatus(`Os campos compativeis ja estavam preenchidos (${alreadyFilledCount}).`);
+                return;
+            }
             setStatus("Nenhum campo compativel foi encontrado nessa pagina.", true);
         }
         catch (_error) {
