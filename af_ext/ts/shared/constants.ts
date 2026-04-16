@@ -69,7 +69,16 @@ const AutofillShared = {
     },
     {
       key: "firstName",
-      keywords: ["nome", "primeiro nome", "first name", "firstname", "given name", "given-name"],
+      keywords: [
+        "nome",
+        "primeiro nome",
+        "first name",
+        "firstname",
+        "given name",
+        "given-name",
+        "preferred first name",
+        "preferred name"
+      ],
       autocomplete: ["given-name"]
     },
     {

@@ -31,10 +31,10 @@ const AutofillAutofillCore = {
         const collected = [];
         let current = field.parentElement;
         let depth = 0;
-        while (current && depth < 3 && collected.length < 2) {
+        while (current && depth < 5 && collected.length < 3) {
             const text = AutofillAutofillCore.extractContainerText(current);
             const tokenCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
-            if (tokenCount > 0 && tokenCount <= 12) {
+            if (tokenCount > 0 && tokenCount <= 24) {
                 collected.push(text);
             }
             current = current.parentElement;
@@ -67,10 +67,31 @@ const AutofillAutofillCore = {
         }
         return normalizedText === normalizedKeyword;
     },
+    isIdentifierPatternMatch(identifier, keyword) {
+        const normalizedIdentifier = AutofillTextCore.normalizeForTokenMatch(identifier);
+        if (!normalizedIdentifier) {
+            return false;
+        }
+        if (!AutofillTextCore.containsToken(normalizedIdentifier, keyword)) {
+            return false;
+        }
+        // IDs like first-name-input/email-input are strong semantic hints on dynamic forms.
+        return /\b(input|field|textbox|value|control|question|answer|element)\b/.test(normalizedIdentifier);
+    },
     buildSignals(field) {
         const autocomplete = AutofillTextCore.normalizeText(field.getAttribute("autocomplete") || "");
         const name = AutofillTextCore.normalizeText(field.getAttribute("name") || "");
         const id = AutofillTextCore.normalizeText(field.getAttribute("id") || "");
+        const dataAttrs = AutofillTextCore.normalizeText([
+            field.getAttribute("data-test"),
+            field.getAttribute("data-testid"),
+            field.getAttribute("data-qa"),
+            field.getAttribute("data-name"),
+            field.getAttribute("data-field"),
+            field.getAttribute("data-automation-id")
+        ]
+            .filter(Boolean)
+            .join(" "));
         const placeholder = AutofillTextCore.normalizeText(field.getAttribute("placeholder") || "");
         const aria = AutofillTextCore.normalizeText(field.getAttribute("aria-label") || "");
         let type = "";
@@ -83,6 +104,7 @@ const AutofillAutofillCore = {
             autocomplete,
             name,
             id,
+            dataAttrs,
             placeholder,
             aria,
             labelText,
@@ -114,6 +136,9 @@ const AutofillAutofillCore = {
             if (AutofillTextCore.containsToken(signals.id, keyword)) {
                 addPoints(30, "id", keyword);
             }
+            if (AutofillTextCore.containsToken(signals.dataAttrs, keyword)) {
+                addPoints(25, "data_attrs", keyword);
+            }
             if (AutofillTextCore.containsToken(signals.labelText, keyword)) {
                 addPoints(30, "label", keyword);
             }
@@ -126,6 +151,12 @@ const AutofillAutofillCore = {
             }
             if (AutofillAutofillCore.isStrongTokenMatch(signals.labelText, keyword)) {
                 addPoints(35, "strong_label", keyword);
+            }
+            if (AutofillAutofillCore.isIdentifierPatternMatch(signals.id, keyword)) {
+                addPoints(35, "id_pattern", keyword);
+            }
+            if (AutofillAutofillCore.isIdentifierPatternMatch(signals.name, keyword)) {
+                addPoints(35, "name_pattern", keyword);
             }
             if (AutofillAutofillCore.isStrongTokenMatch(signals.contextText, keyword)) {
                 addPoints(35, "strong_context", keyword);

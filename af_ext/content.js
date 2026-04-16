@@ -5,6 +5,7 @@
     const RECHECK_DELAY_MS = AutofillShared.RECHECK_DELAY_MS;
     const DEBUG_EVENT_NAME = AutofillShared.DEBUG_EVENT_NAME;
     const extApi = typeof browser !== "undefined" ? browser : chrome;
+    const FORM_FIELD_SELECTOR = "input, select, textarea, [contenteditable='true'], [role='textbox'], [role='combobox']";
     let debounceHandle = null;
     init();
     function init() {
@@ -97,7 +98,7 @@
         });
     }
     function collectCandidateFields() {
-        return Array.from(document.querySelectorAll("input, select, textarea"))
+        return collectFormFieldsDeep()
             .filter((field) => !field.disabled)
             .filter((field) => {
             if (!(field instanceof HTMLElement)) {
@@ -109,14 +110,17 @@
                     return false;
                 }
             }
-            if (String(field.value || "").trim()) {
+            if (!isFillableField(field)) {
+                return false;
+            }
+            if (getFieldCurrentValue(field)) {
                 return false;
             }
             return !AutofillAutofillCore.looksProtected(field);
         });
     }
     function collectPrefilledCandidateFields() {
-        return Array.from(document.querySelectorAll("input, select, textarea"))
+        return collectFormFieldsDeep()
             .filter((field) => !field.disabled)
             .filter((field) => {
             if (!(field instanceof HTMLElement)) {
@@ -128,11 +132,68 @@
                     return false;
                 }
             }
-            if (!String(field.value || "").trim()) {
+            if (!isFillableField(field)) {
+                return false;
+            }
+            if (!getFieldCurrentValue(field)) {
                 return false;
             }
             return !AutofillAutofillCore.looksProtected(field);
         });
+    }
+    function collectFormFieldsDeep() {
+        const collected = [];
+        const roots = [document];
+        const seenRoots = new Set();
+        const seenFields = new Set();
+        while (roots.length > 0) {
+            const root = roots.pop();
+            if (!root || seenRoots.has(root)) {
+                continue;
+            }
+            seenRoots.add(root);
+            const scopedFields = root.querySelectorAll ? Array.from(root.querySelectorAll(FORM_FIELD_SELECTOR)) : [];
+            for (const field of scopedFields) {
+                if (!(field instanceof HTMLElement)) {
+                    continue;
+                }
+                if (seenFields.has(field)) {
+                    continue;
+                }
+                seenFields.add(field);
+                collected.push(field);
+            }
+            const descendants = root.querySelectorAll ? Array.from(root.querySelectorAll("*")) : [];
+            for (const element of descendants) {
+                if (element.shadowRoot) {
+                    roots.push(element.shadowRoot);
+                }
+            }
+        }
+        return collected;
+    }
+    function isFillableField(field) {
+        if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+            return true;
+        }
+        const role = AutofillTextCore.normalizeText(field.getAttribute("role") || "");
+        if (["textbox", "combobox"].includes(role)) {
+            return true;
+        }
+        return field.getAttribute("contenteditable") === "true";
+    }
+    function getFieldCurrentValue(field) {
+        if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+            return String(field.value || "").trim();
+        }
+        if (field.getAttribute("contenteditable") === "true") {
+            return String(field.textContent || "").trim();
+        }
+        const ariaValueText = String(field.getAttribute("aria-valuetext") || "").trim();
+        if (ariaValueText) {
+            return ariaValueText;
+        }
+        return String(field.textContent || "").trim();
     }
     function setFieldValue(field, value) {
         if (!value) {
@@ -141,16 +202,41 @@
         if (field instanceof HTMLSelectElement) {
             return setSelectValue(field, value);
         }
-        const previousReadOnly = field.readOnly;
-        if (previousReadOnly && field instanceof HTMLInputElement) {
-            field.readOnly = false;
+        if (field instanceof HTMLTextAreaElement) {
+            setNativeTextValue(field, String(value));
+            triggerFieldEvents(field);
+            return true;
         }
-        field.value = String(value);
+        if (field instanceof HTMLInputElement) {
+            setNativeTextValue(field, String(value));
+            const previousReadOnly = field.readOnly;
+            if (previousReadOnly) {
+                field.readOnly = false;
+            }
+            triggerFieldEvents(field);
+            if (previousReadOnly) {
+                field.readOnly = true;
+            }
+            return true;
+        }
+        if (field.getAttribute("contenteditable") === "true") {
+            field.textContent = String(value);
+            triggerFieldEvents(field);
+            return true;
+        }
+        field.textContent = String(value);
         triggerFieldEvents(field);
-        if (previousReadOnly && field instanceof HTMLInputElement) {
-            field.readOnly = true;
-        }
+        field.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Enter" }));
         return true;
+    }
+    function setNativeTextValue(field, value) {
+        const prototype = field instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+        const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
+        if (valueSetter) {
+            valueSetter.call(field, value);
+            return;
+        }
+        field.value = value;
     }
     function setSelectValue(select, targetValue) {
         const normalizedTarget = AutofillTextCore.normalizeText(targetValue);
@@ -200,10 +286,13 @@
                     if (!(node instanceof HTMLElement)) {
                         return false;
                     }
-                    if (node.matches?.("input, select, textarea")) {
+                    if (node.matches?.(FORM_FIELD_SELECTOR)) {
                         return true;
                     }
-                    return Boolean(node.querySelector?.("input, select, textarea"));
+                    if (Boolean(node.querySelector?.(FORM_FIELD_SELECTOR))) {
+                        return true;
+                    }
+                    return Boolean(node.shadowRoot?.querySelector?.(FORM_FIELD_SELECTOR));
                 });
             });
             if (!hasFieldMutation) {
