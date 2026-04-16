@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": ["DOM", "ES2020"],
+    "rootDir": "af_ext/ts",
+    "outDir": "af_ext",
+    "strict": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "noEmitOnError": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["af_ext/ts/**/*.ts", "af_ext/ts/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

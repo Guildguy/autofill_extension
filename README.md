@@ -2,12 +2,61 @@
 
 Extensao de navegador para preencher formularios automaticamente com dados pessoais salvos localmente.
 
+## Stack
+
+- Node.js (build tooling)
+- TypeScript (fonte da logica da extensao)
+- WebExtension Manifest V3
+
 ## Estrutura
 
 - `af_ext/manifest.json`: configuracao da extensao (MV3)
 - `af_ext/popup.html`: interface de cadastro dos dados
-- `af_ext/popup.js`: logica de salvar no `chrome.storage.local`
-- `af_ext/content.js`: deteccao inteligente e preenchimento dos campos
+- `af_ext/ts/shared/contracts.ts`: contratos e tipos compartilhados
+- `af_ext/ts/shared/constants.ts`: constantes globais da extensao
+- `af_ext/ts/core/text-core.ts`: utilitarios puros de texto/mascara
+- `af_ext/ts/core/profile-core.ts`: regras puras de normalizacao do perfil
+- `af_ext/ts/core/autofill-core.ts`: regras puras de inferencia e resolucao de campos
+- `af_ext/ts/popup.ts`: entrypoint TypeScript do popup
+- `af_ext/ts/content.ts`: entrypoint TypeScript do autofill
+- `af_ext/ts/autofill-debug.ts`: entrypoint TypeScript da depuracao
+- `af_ext/popup.js`, `af_ext/content.js`, `af_ext/autofill-debug.js`: arquivos gerados pelo build
+
+### Arquitetura em camadas (fase 1)
+
+- `shared`: contratos e constantes reutilizadas por todos os entrypoints.
+- `core`: logica de dominio pura (sem acesso direto a `chrome`, `browser` ou DOM global externo).
+- `entrypoints`: scripts que conectam UI/DOM/APIs do navegador (`popup.ts`, `content.ts`, `autofill-debug.ts`).
+
+Essa separacao reduz duplicacao, facilita testes unitarios de regra e prepara o projeto para uma fase 2 com adapters de infraestrutura.
+
+## Setup Node.js + TypeScript
+
+1. Instale dependencias:
+
+```bash
+npm install
+```
+
+2. Gere os arquivos JavaScript da extensao:
+
+```bash
+npm run build
+```
+
+3. Durante desenvolvimento (watch):
+
+```bash
+npm run dev
+```
+
+4. Validar apenas tipos (sem gerar arquivos):
+
+```bash
+npm run typecheck
+```
+
+Observacao: edite sempre os arquivos em `af_ext/ts/*.ts`. Os arquivos `.js` em `af_ext/` sao gerados automaticamente.
 
 ## Navegadores suportados
 
