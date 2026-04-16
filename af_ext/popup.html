@@ -60,7 +60,8 @@
 				color: var(--muted);
 			}
 
-			input {
+			input,
+			select {
 				width: 100%;
 				border: 1px solid var(--border);
 				border-radius: 8px;
@@ -70,9 +71,16 @@
 				background: #fff;
 			}
 
-			input:focus {
+			input:focus,
+			select:focus {
 				outline: 2px solid #99f6e4;
 				border-color: var(--accent);
+			}
+
+			.phone-inline {
+				display: grid;
+				grid-template-columns: 90px 1fr;
+				gap: 8px;
 			}
 
 			.actions {
@@ -121,49 +129,65 @@
 				<div class="grid">
 					<label>
 						Primeiro nome
-						<input id="firstName" autocomplete="given-name" />
+						<input id="firstName" autocomplete="given-name" maxlength="60" />
 					</label>
 					<label>
 						Sobrenome
-						<input id="lastName" autocomplete="family-name" />
+						<input id="lastName" autocomplete="family-name" maxlength="80" />
 					</label>
 				</div>
 
 				<label>
 					Nome completo
-					<input id="fullName" autocomplete="name" />
+					<input id="fullName" autocomplete="name" maxlength="120" />
 				</label>
 
 				<div class="grid">
 					<label>
 						LinkedIn
-						<input id="linkedin" type="url" placeholder="https://linkedin.com/in/seu-perfil" />
+						<input id="linkedin" type="url" placeholder="https://linkedin.com/in/seu-perfil" maxlength="255" />
 					</label>
 					<label>
 						GitHub
-						<input id="github" type="url" placeholder="https://github.com/seu-usuario" />
+						<input id="github" type="url" placeholder="https://github.com/seu-usuario" maxlength="255" />
 					</label>
 				</div>
 
 				<div class="grid">
 					<label>
 						CPF
-						<input id="cpf" placeholder="000.000.000-00" />
+						<input id="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" />
 					</label>
 					<label>
 						RG
-						<input id="rg" placeholder="12.345.678-9" />
+						<input id="rg" placeholder="12.345.678-9" maxlength="20" />
 					</label>
 				</div>
 
 				<div class="grid">
 					<label>
 						Email
-						<input id="email" type="email" autocomplete="email" />
+						<input id="email" type="email" autocomplete="email" maxlength="120" />
 					</label>
 					<label>
 						Telefone
-						<input id="phone" placeholder="(11) 91234-5678" autocomplete="tel" />
+						<div class="phone-inline">
+							<select id="phoneCountryCode" aria-label="Codigo do pais para telefone">
+								<option value="+55">+55 BR</option>
+								<option value="+1">+1 US/CA</option>
+								<option value="+44">+44 UK</option>
+								<option value="+34">+34 ES</option>
+								<option value="+351">+351 PT</option>
+								<option value="+39">+39 IT</option>
+								<option value="+33">+33 FR</option>
+								<option value="+49">+49 DE</option>
+								<option value="+52">+52 MX</option>
+								<option value="+54">+54 AR</option>
+								<option value="+57">+57 CO</option>
+								<option value="+56">+56 CL</option>
+							</select>
+							<input id="phone" placeholder="12997513882" autocomplete="tel" maxlength="15" inputmode="numeric" />
+						</div>
 					</label>
 				</div>
 
@@ -174,34 +198,34 @@
 					</label>
 					<label>
 						CEP
-						<input id="cep" placeholder="01310-100" autocomplete="postal-code" />
+						<input id="cep" placeholder="01310-100" autocomplete="postal-code" maxlength="9" inputmode="numeric" />
 					</label>
 				</div>
 
 				<label>
 					Rua
-					<input id="street" autocomplete="address-line1" />
+					<input id="street" autocomplete="address-line1" maxlength="120" />
 				</label>
 
 				<div class="grid">
 					<label>
 						Numero
-						<input id="number" autocomplete="address-line2" />
+						<input id="number" autocomplete="address-line2" maxlength="10" />
 					</label>
 					<label>
 						Complemento
-						<input id="complement" />
+						<input id="complement" maxlength="80" />
 					</label>
 				</div>
 
 				<div class="grid">
 					<label>
 						Bairro
-						<input id="district" />
+						<input id="district" maxlength="80" />
 					</label>
 					<label>
 						Cidade
-						<input id="city" autocomplete="address-level2" />
+						<input id="city" autocomplete="address-level2" maxlength="80" />
 					</label>
 				</div>
 
@@ -212,7 +236,7 @@
 					</label>
 					<label>
 						Estado (nome)
-						<input id="stateName" placeholder="Sao Paulo" />
+						<input id="stateName" placeholder="Sao Paulo" maxlength="40" />
 					</label>
 				</div>
 

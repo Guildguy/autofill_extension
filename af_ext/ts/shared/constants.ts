@@ -13,6 +13,7 @@ const AutofillShared = {
     "fullName",
     "linkedin",
     "github",
+    "phoneCountryCode",
     "cpf",
     "rg",
     "email",
@@ -103,8 +104,33 @@ const AutofillShared = {
     },
     {
       key: "phone",
-      keywords: ["telefone", "celular", "phone", "mobile", "whatsapp"],
+      keywords: [
+        "telefone",
+        "celular",
+        "phone",
+        "mobile",
+        "whatsapp",
+        "phone number",
+        "numero telefone",
+        "numero de telefone"
+      ],
       autocomplete: ["tel", "tel-national"]
+    },
+    {
+      key: "phoneCountry",
+      keywords: [
+        "country code",
+        "phone country",
+        "country dial",
+        "dial code",
+        "codigo pais",
+        "codigo do pais",
+        "ddi",
+        "isd",
+        "phone prefix",
+        "prefixo"
+      ],
+      autocomplete: ["tel-country-code"]
     },
     {
       key: "cep",

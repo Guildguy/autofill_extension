@@ -8,6 +8,7 @@ const fillNowButton = document.getElementById("fill-now");
 const statusEl = document.getElementById("status");
 
 document.addEventListener("DOMContentLoaded", () => {
+  attachInputConstraints();
   loadProfile();
 });
 
@@ -72,10 +73,124 @@ function buildProfileFromForm() {
   const data = {};
   for (const id of AutofillShared.FIELD_IDS) {
     const el = document.getElementById(id);
-    data[id] = el ? String(el.value || "").trim() : "";
+    data[id] = el ? sanitizeByField(id, String(el.value || "").trim()) : "";
   }
 
   return AutofillProfileCore.buildProfileFromData(data, AutofillShared.STATES);
+}
+
+function attachInputConstraints() {
+  const cpfInput = document.getElementById("cpf");
+  const cepInput = document.getElementById("cep");
+  const phoneInput = document.getElementById("phone");
+  const stateCodeInput = document.getElementById("stateCode");
+  const phoneCountryCodeSelect = document.getElementById("phoneCountryCode");
+
+  if (cpfInput) {
+    cpfInput.addEventListener("input", () => {
+      cpfInput.value = AutofillTextCore.digitsOnly(cpfInput.value).slice(0, 11);
+    });
+  }
+
+  if (cepInput) {
+    cepInput.addEventListener("input", () => {
+      cepInput.value = AutofillTextCore.digitsOnly(cepInput.value).slice(0, 8);
+    });
+  }
+
+  if (phoneInput) {
+    const normalizePhoneInput = () => {
+      const maxDigits = resolvePhoneMaxDigits(phoneCountryCodeSelect?.value || "+55");
+      phoneInput.value = AutofillTextCore.digitsOnly(phoneInput.value).slice(0, maxDigits);
+    };
+
+    phoneInput.addEventListener("input", normalizePhoneInput);
+    phoneCountryCodeSelect?.addEventListener("change", normalizePhoneInput);
+  }
+
+  if (stateCodeInput) {
+    stateCodeInput.addEventListener("input", () => {
+      stateCodeInput.value = String(stateCodeInput.value || "")
+        .replace(/[^a-zA-Z]/g, "")
+        .toUpperCase()
+        .slice(0, 2);
+    });
+  }
+
+  if (phoneCountryCodeSelect) {
+    phoneCountryCodeSelect.addEventListener("change", () => {
+      phoneCountryCodeSelect.value = normalizeDialCode(phoneCountryCodeSelect.value);
+    });
+  }
+}
+
+function sanitizeByField(fieldId: string, value: string): string {
+  switch (fieldId) {
+    case "cpf":
+      return AutofillTextCore.digitsOnly(value).slice(0, 11);
+    case "cep":
+      return AutofillTextCore.digitsOnly(value).slice(0, 8);
+    case "phone": {
+      const phoneCountryCode = getElementValue("phoneCountryCode") || "+55";
+      const maxDigits = resolvePhoneMaxDigits(phoneCountryCode);
+      return AutofillTextCore.digitsOnly(value).slice(0, maxDigits);
+    }
+    case "phoneCountryCode":
+      return normalizeDialCode(value);
+    case "stateCode":
+      return value.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 2);
+    case "linkedin":
+    case "github":
+      return value.slice(0, 255);
+    case "email":
+      return value.slice(0, 120);
+    case "firstName":
+      return value.slice(0, 60);
+    case "lastName":
+      return value.slice(0, 80);
+    case "fullName":
+      return value.slice(0, 120);
+    case "street":
+      return value.slice(0, 120);
+    case "number":
+      return value.slice(0, 10);
+    case "complement":
+      return value.slice(0, 80);
+    case "district":
+      return value.slice(0, 80);
+    case "city":
+      return value.slice(0, 80);
+    case "stateName":
+      return value.slice(0, 40);
+    case "rg":
+      return value.slice(0, 20);
+    default:
+      return value;
+  }
+}
+
+function normalizeDialCode(value: string): string {
+  const digits = AutofillTextCore.digitsOnly(value).slice(0, 4);
+  if (!digits) {
+    return "+55";
+  }
+  return `+${digits}`;
+}
+
+function resolvePhoneMaxDigits(phoneCountryCode: string): number {
+  const dialDigits = AutofillTextCore.digitsOnly(phoneCountryCode);
+  if (dialDigits === "55") {
+    return 11;
+  }
+  return 15;
+}
+
+function getElementValue(id: string): string {
+  const el = document.getElementById(id);
+  if (!el) {
+    return "";
+  }
+  return String(el.value || "");
 }
 
 async function saveProfile(profile) {

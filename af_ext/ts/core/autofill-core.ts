@@ -235,6 +235,39 @@ const AutofillAutofillCore = {
     return pattern.includes("\\d");
   },
 
+  wantsInternationalPhone(field: Element): boolean {
+    const combined = [
+      field.getAttribute("name"),
+      field.getAttribute("id"),
+      field.getAttribute("placeholder"),
+      field.getAttribute("aria-label"),
+      AutofillAutofillCore.resolveLabelText(field),
+      AutofillAutofillCore.resolveContextText(field)
+    ]
+      .filter(Boolean)
+      .map(AutofillTextCore.normalizeText)
+      .join(" ");
+
+    if (!combined) {
+      return false;
+    }
+
+    const intlHints = [
+      "country code",
+      "dial code",
+      "ddi",
+      "isd",
+      "prefix",
+      "codigo pais",
+      "codigo do pais",
+      "internacional",
+      "international",
+      "+"
+    ];
+
+    return intlHints.some((hint) => combined.includes(hint));
+  },
+
   resolveValue(
     fieldKey: AutofillFieldKey,
     field: Element,
@@ -257,6 +290,10 @@ const AutofillAutofillCore = {
         return userData.linkedin || "";
       case "github":
         return userData.github || "";
+      case "phoneCountry":
+        return AutofillAutofillCore.wantsRawDigits(field)
+          ? AutofillTextCore.digitsOnly(userData.phoneCountryCode || "")
+          : userData.phoneCountryCode || "";
       case "email":
         return userData.email || "";
       case "cpf":
@@ -264,7 +301,15 @@ const AutofillAutofillCore = {
       case "rg":
         return userData.rg || "";
       case "phone":
-        return AutofillAutofillCore.wantsRawDigits(field) ? userData.phoneRaw || "" : userData.phone || userData.phoneRaw || "";
+        if (AutofillAutofillCore.wantsInternationalPhone(field)) {
+          return AutofillAutofillCore.wantsRawDigits(field)
+            ? userData.phoneIntlRaw || userData.phoneRaw || ""
+            : userData.phoneIntl || userData.phone || userData.phoneRaw || "";
+        }
+
+        return AutofillAutofillCore.wantsRawDigits(field)
+          ? userData.phoneRaw || ""
+          : userData.phone || userData.phoneRaw || "";
       case "cep":
         return AutofillAutofillCore.wantsRawDigits(field) ? userData.cepRaw || "" : userData.cep || userData.cepRaw || "";
       case "street":
