@@ -1,36 +1,38 @@
 # AutoFill Extension
 
-Extensao de navegador para preencher formularios automaticamente com dados pessoais salvos localmente.
+Extensao de navegador para preencher formularios com dados pessoais salvos localmente.
+
+## Visao Geral
+
+O comportamento atual e:
+
+- ao detectar formulario na pagina, a extensao mostra um prompt perguntando se deseja preencher agora;
+- o botao "Preencher agora" no popup da extensao continua disponivel e funcional;
+- os dados sao armazenados localmente no navegador.
 
 ## Stack
 
-- Node.js (build tooling)
-- TypeScript (fonte da logica da extensao)
+- Node.js (build e testes)
+- TypeScript (fonte da logica)
+- Vitest + JSDOM (testes unitarios e de integracao)
 - WebExtension Manifest V3
 
-## Estrutura
+## Estrutura Principal
 
 - `af_ext/manifest.json`: configuracao da extensao (MV3)
-- `af_ext/popup.html`: interface de cadastro dos dados
-- `af_ext/ts/shared/contracts.ts`: contratos e tipos compartilhados
-- `af_ext/ts/shared/constants.ts`: constantes globais da extensao
-- `af_ext/ts/core/text-core.ts`: utilitarios puros de texto/mascara
-- `af_ext/ts/core/profile-core.ts`: regras puras de normalizacao do perfil
-- `af_ext/ts/core/autofill-core.ts`: regras puras de inferencia e resolucao de campos
-- `af_ext/ts/popup.ts`: entrypoint TypeScript do popup
-- `af_ext/ts/content.ts`: entrypoint TypeScript do autofill
-- `af_ext/ts/autofill-debug.ts`: entrypoint TypeScript da depuracao
-- `af_ext/popup.js`, `af_ext/content.js`, `af_ext/autofill-debug.js`: arquivos gerados pelo build
+- `af_ext/popup.html`: interface de cadastro
+- `af_ext/ts/popup.ts`: logica do popup
+- `af_ext/ts/content.ts`: logica de deteccao/preenchimento na pagina
+- `af_ext/ts/autofill-debug.ts`: depuracao de score
+- `af_ext/ts/core/text-core.ts`: utilitarios de texto
+- `af_ext/ts/core/profile-core.ts`: normalizacao/formatao de perfil
+- `af_ext/ts/core/autofill-core.ts`: inferencia de campos e resolucao de valores
+- `af_ext/ts/shared/constants.ts`: chaves, definicoes de campos e regras comuns
+- `af_ext/ts/shared/contracts.ts`: tipos/contratos compartilhados
+- `tests/unit`: testes unitarios
+- `tests/integration`: testes de integracao
 
-### Arquitetura em camadas (fase 1)
-
-- `shared`: contratos e constantes reutilizadas por todos os entrypoints.
-- `core`: logica de dominio pura (sem acesso direto a `chrome`, `browser` ou DOM global externo).
-- `entrypoints`: scripts que conectam UI/DOM/APIs do navegador (`popup.ts`, `content.ts`, `autofill-debug.ts`).
-
-Essa separacao reduz duplicacao, facilita testes unitarios de regra e prepara o projeto para uma fase 2 com adapters de infraestrutura.
-
-## Setup Node.js + TypeScript
+## Setup
 
 1. Instale dependencias:
 
@@ -44,87 +46,90 @@ npm install
 npm run build
 ```
 
-3. Durante desenvolvimento (watch):
+3. Desenvolvimento em watch:
 
 ```bash
 npm run dev
 ```
 
-4. Validar apenas tipos (sem gerar arquivos):
+4. Validar tipos sem gerar arquivos:
 
 ```bash
 npm run typecheck
 ```
 
-Observacao: edite sempre os arquivos em `af_ext/ts/*.ts`. Os arquivos `.js` em `af_ext/` sao gerados automaticamente.
+Observacao: edite os arquivos em `af_ext/ts`. Os arquivos `.js` em `af_ext/` sao gerados pelo build.
 
-## Navegadores suportados
+## Instalacao Da Extensao
 
-- Chrome
-- Opera
-- Edge
-- Brave
-- Firefox (via Firefox Developer Edition ou about:debugging para carga temporaria)
-
-## Como instalar (Chrome, Opera, Edge, Brave)
+### Chrome, Edge, Brave, Opera
 
 1. Abra `chrome://extensions`.
-2. Ative o modo desenvolvedor (Developer mode).
-3. Clique em **Load unpacked**.
-4. Selecione a pasta `af_ext` deste projeto.
+2. Ative o modo desenvolvedor.
+3. Clique em "Load unpacked".
+4. Selecione a pasta `af_ext` (nao selecione a raiz do repositorio).
 
-No Opera, a tela de extensoes tambem aceita pacote nao publicado e carrega a mesma pasta.
-
-## Como instalar no Firefox
+### Firefox
 
 1. Abra `about:debugging`.
-2. Entre em **This Firefox**.
-3. Clique em **Load Temporary Add-on**.
-4. Selecione o arquivo `manifest.json` dentro de `af_ext`.
+2. Entre em "This Firefox".
+3. Clique em "Load Temporary Add-on".
+4. Escolha `af_ext/manifest.json`.
 
-Observacao: no modo temporario do Firefox, a extensao precisa ser recarregada ao reiniciar o navegador.
-
-## Como usar
+## Maneira Correta De Uso
 
 1. Clique no icone da extensao.
-2. Preencha seus dados no popup.
-3. Clique em **Salvar dados**.
-4. Em qualquer formulario, clique em **Preencher agora** no popup para disparar o autofill.
+2. Preencha os dados e clique em "Salvar dados".
+3. Abra uma pagina com formulario.
+4. Quando o prompt in-page aparecer, escolha:
+   - "Preencher agora" para executar o autofill;
+   - "Agora nao" para ignorar nessa pagina.
+5. A qualquer momento, voce pode abrir o popup da extensao e clicar em "Preencher agora" para disparar manualmente.
 
-## O que a extensao faz
+## Comportamento De Preenchimento
 
-- Detecta campos por `autocomplete`, `name`, `id`, `label`, `placeholder` e `aria-label`.
-- Usa score para decidir preenchimento automatico (mais seguro em formularios variados).
-- Trata casos comuns:
-	- nome completo versus nome/sobrenome
-	- CPF, telefone e CEP com ou sem mascara
-	- estado em `input` e `select`
-	- data de nascimento em campo unico ou separado
-- Dispara eventos `input`, `change` e `blur` para compatibilidade com React/Vue.
-- Observa mudancas no DOM com `MutationObserver` para formularios de SPAs.
+- Identifica campos por `autocomplete`, `name`, `id`, `label`, `placeholder`, `aria-label` e contexto de texto.
+- Usa score para decidir se um campo e compativel.
+- Trata formatos comuns: CPF, telefone (incluindo DDI), CEP, estado, data de nascimento, nome completo e nome dividido.
+- Dispara eventos `input`, `change` e `blur` para compatibilidade com frameworks.
+- Observa mudancas no DOM com `MutationObserver` para formularios dinamicos.
 
-## Depuracao de score (arquivo independente)
+## Testes
 
-A depuracao foi isolada no arquivo `af_ext/autofill-debug.js`, sem misturar interface do popup.
+- Rodar tudo (build + unit + integracao):
 
-Como ativar:
+```bash
+npm test
+```
 
-1. Abra qualquer pagina com formulario.
-2. Use o atalho `Ctrl+Alt+Shift+D` para ligar/desligar debug.
-3. Abra o DevTools e veja os logs no Console.
+- Apenas unitarios:
 
-Opcao por URL:
+```bash
+npm run test:unit
+```
 
-- Adicione `?autofill_debug=1` na URL para iniciar com debug ativo nessa pagina.
+- Apenas integracao:
 
-O log mostra:
+```bash
+npm run test:integration
+```
 
-- score final por campo
-- tipo de campo inferido
-- quais regras somaram pontos
-- se o campo passou o threshold e se foi preenchido
+- Modo watch:
+
+```bash
+npm run test:watch
+```
+
+## Depuracao
+
+- Atalho: `Ctrl+Alt+Shift+D` para ligar/desligar debug de score.
+- URL: adicionar `?autofill_debug=1` para iniciar com debug ativo.
+
+## Documentacao Didatica
+
+- Diagrama de arquitetura: `docs/arquitetura-diagrama.md`
 
 ## Privacidade
 
-- Os dados ficam no navegador usando `chrome.storage.local`.
-- Nenhum dado e enviado para servidor externo.
+- Dados em `chrome.storage.local`.
+- Nenhum envio para servidor externo.
