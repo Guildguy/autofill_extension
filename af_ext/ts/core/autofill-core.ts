@@ -103,6 +103,7 @@ const AutofillAutofillCore = {
     const autocomplete = AutofillTextCore.normalizeText(field.getAttribute("autocomplete") || "");
     const name = AutofillTextCore.normalizeText(field.getAttribute("name") || "");
     const id = AutofillTextCore.normalizeText(field.getAttribute("id") || "");
+    const attrLabel = AutofillTextCore.normalizeText(field.getAttribute("label") || "");
     const dataAttrs = AutofillTextCore.normalizeText(
       [
         field.getAttribute("data-test"),
@@ -110,7 +111,8 @@ const AutofillAutofillCore = {
         field.getAttribute("data-qa"),
         field.getAttribute("data-name"),
         field.getAttribute("data-field"),
-        field.getAttribute("data-automation-id")
+        field.getAttribute("data-automation-id"),
+        field.getAttribute("data-sr-id")
       ]
         .filter(Boolean)
         .join(" ")
@@ -130,6 +132,7 @@ const AutofillAutofillCore = {
       autocomplete,
       name,
       id,
+      attrLabel,
       dataAttrs,
       placeholder,
       aria,
@@ -180,6 +183,10 @@ const AutofillAutofillCore = {
         addPoints(30, "label", keyword);
       }
 
+      if (AutofillTextCore.containsToken(signals.attrLabel, keyword)) {
+        addPoints(35, "attr_label", keyword);
+      }
+
       if (AutofillTextCore.containsToken(signals.contextText, keyword)) {
         addPoints(20, "context", keyword);
       }
@@ -193,6 +200,10 @@ const AutofillAutofillCore = {
 
       if (AutofillAutofillCore.isStrongTokenMatch(signals.labelText, keyword)) {
         addPoints(35, "strong_label", keyword);
+      }
+
+      if (AutofillAutofillCore.isStrongTokenMatch(signals.attrLabel, keyword)) {
+        addPoints(35, "strong_attr_label", keyword);
       }
 
       if (AutofillAutofillCore.isIdentifierPatternMatch(signals.id, keyword)) {
@@ -333,6 +344,8 @@ const AutofillAutofillCore = {
         return AutofillAutofillCore.wantsRawDigits(field)
           ? AutofillTextCore.digitsOnly(userData.phoneCountryCode || "")
           : userData.phoneCountryCode || "";
+      case "country":
+        return userData.country || "";
       case "email":
         return userData.email || "";
       case "cpf":

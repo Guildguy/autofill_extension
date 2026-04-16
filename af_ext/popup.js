@@ -144,6 +144,8 @@
                 return value.slice(0, 80);
             case "city":
                 return value.slice(0, 80);
+            case "country":
+                return value.slice(0, 80);
             case "stateName":
                 return value.slice(0, 40);
             case "rg":

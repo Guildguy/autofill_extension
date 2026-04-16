@@ -14,6 +14,7 @@ const AutofillShared = {
     "linkedin",
     "github",
     "phoneCountryCode",
+    "country",
     "cpf",
     "rg",
     "email",
@@ -140,6 +141,20 @@ const AutofillShared = {
         "prefixo"
       ],
       autocomplete: ["tel-country-code"]
+    },
+    {
+      key: "country",
+      keywords: [
+        "country",
+        "country region",
+        "country/region",
+        "pais",
+        "país",
+        "pais regiao",
+        "pais/regiao",
+        "nacionalidade"
+      ],
+      autocomplete: ["country", "country-name"]
     },
     {
       key: "cep",

@@ -5,6 +5,7 @@ type AutofillFieldKey =
   | "linkedin"
   | "github"
   | "phoneCountry"
+  | "country"
   | "email"
   | "cpf"
   | "rg"
@@ -42,6 +43,7 @@ interface AutofillUserProfile {
   phoneRaw: string;
   phoneIntl: string;
   phoneIntlRaw: string;
+  country: string;
   birthDate: string;
   birthDateBr: string;
   cep: string;

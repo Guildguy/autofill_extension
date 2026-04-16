@@ -5,7 +5,8 @@ const MIN_SCORE = AutofillShared.MIN_SCORE;
 const RECHECK_DELAY_MS = AutofillShared.RECHECK_DELAY_MS;
 const DEBUG_EVENT_NAME = AutofillShared.DEBUG_EVENT_NAME;
 const extApi = typeof browser !== "undefined" ? browser : chrome;
-const FORM_FIELD_SELECTOR = "input, select, textarea, [contenteditable='true'], [role='textbox'], [role='combobox']";
+const FORM_FIELD_SELECTOR =
+	"input, select, textarea, spl-autocomplete, spl-select, spl-input, [contenteditable='true'], [role='textbox'], [role='combobox'], [data-test='location-autocomplete']";
 
 let debounceHandle = null;
 
@@ -220,11 +221,23 @@ function isFillableField(field) {
 		return true;
 	}
 
+	const hasLabelAttribute = Boolean(field.getAttribute("label") || field.getAttribute("data-sr-id"));
+	const hasValueProperty = typeof field.value !== "undefined";
+	const customTag = String(field.tagName || "").toLowerCase();
+	const fillableCustomTags = ["spl-autocomplete", "spl-select", "spl-input", "oc-location-autocomplete"];
+	if (hasLabelAttribute && (hasValueProperty || fillableCustomTags.includes(customTag))) {
+		return true;
+	}
+
 	return field.getAttribute("contenteditable") === "true";
 }
 
 function getFieldCurrentValue(field) {
 	if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+		return String(field.value || "").trim();
+	}
+
+	if (typeof field.value !== "undefined") {
 		return String(field.value || "").trim();
 	}
 
@@ -274,6 +287,13 @@ function setFieldValue(field, value) {
 
 	if (field.getAttribute("contenteditable") === "true") {
 		field.textContent = String(value);
+		triggerFieldEvents(field);
+		return true;
+	}
+
+	if (typeof field.value !== "undefined") {
+		field.value = String(value);
+		field.setAttribute("value", String(value));
 		triggerFieldEvents(field);
 		return true;
 	}

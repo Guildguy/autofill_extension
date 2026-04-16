@@ -129,6 +129,7 @@ const AutofillProfileCore = {
       phone: AutofillProfileCore.formatPhone(phoneRaw, phoneCountryCode),
       phoneIntl: AutofillProfileCore.formatInternationalPhone(phoneRaw, phoneCountryCode),
       phoneIntlRaw: `${phoneCountryDigits}${phoneRaw}`,
+      country: String(data.country || "").trim(),
       cepRaw,
       cep: AutofillProfileCore.formatCep(cepRaw),
       stateCode: normalizedStateCode,
